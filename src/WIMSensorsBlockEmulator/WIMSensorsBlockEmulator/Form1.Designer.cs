@@ -36,6 +36,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -46,19 +47,20 @@
             // 
             this.log.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.log.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.log.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.log.Location = new System.Drawing.Point(0, 0);
             this.log.Multiline = true;
             this.log.Name = "log";
             this.log.ReadOnly = true;
             this.log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.log.Size = new System.Drawing.Size(485, 241);
+            this.log.Size = new System.Drawing.Size(695, 423);
             this.log.TabIndex = 1;
             // 
             // statusLbl
             // 
             this.statusLbl.AutoSize = true;
             this.statusLbl.BackColor = System.Drawing.SystemColors.Control;
-            this.statusLbl.Location = new System.Drawing.Point(330, 12);
+            this.statusLbl.Location = new System.Drawing.Point(335, 12);
             this.statusLbl.Name = "statusLbl";
             this.statusLbl.Size = new System.Drawing.Size(40, 13);
             this.statusLbl.TabIndex = 0;
@@ -66,7 +68,7 @@
             // 
             // startBtn
             // 
-            this.startBtn.Location = new System.Drawing.Point(249, 7);
+            this.startBtn.Location = new System.Drawing.Point(254, 7);
             this.startBtn.Name = "startBtn";
             this.startBtn.Size = new System.Drawing.Size(75, 23);
             this.startBtn.TabIndex = 1;
@@ -76,13 +78,14 @@
             // 
             // port
             // 
-            this.port.Location = new System.Drawing.Point(183, 9);
+            this.port.Location = new System.Drawing.Point(188, 9);
             this.port.Name = "port";
             this.port.Size = new System.Drawing.Size(60, 20);
             this.port.TabIndex = 3;
             // 
             // host
             // 
+            this.host.Enabled = false;
             this.host.Location = new System.Drawing.Point(49, 8);
             this.host.Name = "host";
             this.host.Size = new System.Drawing.Size(100, 20);
@@ -100,7 +103,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(147, 12);
+            this.label2.Location = new System.Drawing.Point(152, 12);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(37, 13);
             this.label2.TabIndex = 7;
@@ -117,6 +120,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.button1);
             this.splitContainer1.Panel1.Controls.Add(this.host);
             this.splitContainer1.Panel1.Controls.Add(this.label1);
             this.splitContainer1.Panel1.Controls.Add(this.startBtn);
@@ -127,15 +131,25 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.log);
-            this.splitContainer1.Size = new System.Drawing.Size(485, 280);
+            this.splitContainer1.Size = new System.Drawing.Size(695, 462);
             this.splitContainer1.SplitterDistance = 35;
             this.splitContainer1.TabIndex = 8;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(608, 8);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 7;
+            this.button1.Text = "Clear log";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(485, 280);
+            this.ClientSize = new System.Drawing.Size(695, 462);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.splitContainer1);
             this.Name = "Form1";
@@ -162,6 +176,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.Button button1;
     }
 }
 

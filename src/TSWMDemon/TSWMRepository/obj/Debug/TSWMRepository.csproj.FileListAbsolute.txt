@@ -1,0 +1,5 @@
+D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\bin\Debug\TSWMRepository.dll
+D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\bin\Debug\TSWMRepository.pdb
+D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\obj\Debug\TSWMRepository.csprojResolveAssemblyReference.cache
+D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\obj\Debug\TSWMRepository.dll
+D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\obj\Debug\TSWMRepository.pdb

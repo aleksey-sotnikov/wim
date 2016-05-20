@@ -22,7 +22,8 @@ namespace WIMSensorsBlockEmulator
 
     public partial class Form1 : Form
     {
-        public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix";
+        //public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix";
+        public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_3_378.wix";
 
         // Создаем сокет Tcp/Ip
         private Socket sListener;
@@ -132,8 +133,8 @@ namespace WIMSensorsBlockEmulator
                     // Отправляем ответ клиенту
                     if(BSFlag.GET_DATA == flag) {
                         
-                        byte[] response = Encoding.UTF8.GetBytes("serv resp");
-                        //byte[] response = getPreparedData();
+                        //byte[] response = Encoding.UTF8.GetBytes("serv resp");
+                        byte[] response = getPreparedData();
                         this.Invoke(new Action(() => { msg("Send data " + response.Length + " bytes ...\n"); }));
 
                         handler.Send(response);

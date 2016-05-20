@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using TSWMRepository;
-
+using TSWMRepository.domain;
 
 namespace TSWMDemon
 {
@@ -59,16 +59,22 @@ namespace TSWMDemon
             {
                 // соединение с блоком сенсоров
                 Socket socket = startClient(bsEndPoint);
+                if(socket == null)
+                {
+                    Logger.Error("Socket not created!", MODULE);
+                    continue;
+                }
                 Console.WriteLine("new socked started");
                 try
                 {
                     // получение данных от блока сенсоров
                     byte[] rawResponse = fetchSBData(socket);
 
+                    // TEST
                     // Console.WriteLine("\nОтвет от сервера размером: {0}\n\n", rawResponse.Length);
-                    File.WriteAllBytes("d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix_1", rawResponse);
+                    //File.WriteAllBytes("d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix_1", rawResponse);
 
-
+                    parseSBData(rawResponse);
 
 
                     // освобождение сокета
@@ -90,6 +96,14 @@ namespace TSWMDemon
             stop();
         }
 
+        private void parseSBData(byte[] rawData)
+        {
+            IRepository rep = Repository.Instance;
+
+            BSData bsData = rep.parseSBData(rawData);
+
+        }
+
         // соединение с блоком сенсоров
         private EndPoint prepareBSEndPoint()
         {
@@ -108,7 +122,6 @@ namespace TSWMDemon
                 if (Int32.TryParse(portText, out portValue))
                 {
                     EndPoint ep = new System.Net.IPEndPoint(hostValue, portValue);
-                    // Параметры сервера блока сенсоров валидны, попытка создания подключения
                     return ep;
                 }
                 else
@@ -155,9 +168,9 @@ namespace TSWMDemon
         {
             // TODO: do fetch data 
             // Буфер для входящих данных
-            byte[] responseBuffer = new byte[2];
-            
-            var response = new List<byte>();
+            byte[] responseBuffer = new byte[1024];
+            // Массив для данных, полученных от блока сенсоров
+            byte[] response = new byte[0];
 
             // создание запроса готовых данных
             // byte[] request = Encoding.UTF8.GetBytes(message);
@@ -165,27 +178,42 @@ namespace TSWMDemon
             // Отправляем данные через сокет
             int bytesSent = socket.Send(request);
             System.Console.WriteLine("sent {0} bytes ", bytesSent);
-
-            //get response here
-            int bytesRecived = 0, bytesRecivedTotal = 0;
-            StringBuilder builder = new StringBuilder();
+            
+            // получение ответа
             do
             {
-                bytesRecivedTotal += bytesRecived = socket.Receive(responseBuffer, responseBuffer.Length, 0);
-                response.AddRange(responseBuffer);
-                //for string data: 
-                builder.Append(Encoding.UTF8.GetString(responseBuffer, 0, bytesRecived));
-                Console.WriteLine("CURRRR ответ сервера: " + builder.ToString());
+                int bytesRecived = socket.Receive(responseBuffer, responseBuffer.Length, 0);
+
+                // изначальная длина полученых данных
+                int respSize = response.Length;
+                
+                // увеличение размера массива полученных данных
+                Array.Resize(ref response, respSize + bytesRecived);
+
+                // проверка для отрезания хвоста. Нужно замеить на что-то более подходящее.
+                byte[] responseData;
+                if (bytesRecived < responseBuffer.Length)
+                {
+                    responseData = new byte[bytesRecived];
+                    Array.Copy(responseBuffer, 0, responseData, 0, bytesRecived);
+                }
+                else
+                {
+                    responseData = responseBuffer;
+                }
+
+                // добавление даннхы их буфера к общем получнным данным
+                responseData.CopyTo(response, respSize);
+                
+                // for string data: 
+                // builder.Append(Encoding.UTF8.GetString(responseBuffer, 0, bytesRecived));
+                // Console.WriteLine("CURRRR ответ сервера: " + builder.ToString());
             }
             while (socket.Available > 0);
-            Console.WriteLine("ответ сервера: " + builder.ToString());
-            response.TrimExcess();
 
             //Console.WriteLine("Ответ от сервера {0} byte : {1}\n", response.Capacity, Encoding.Default.GetString(response.ToArray()));
-            Console.WriteLine("end");
 
-
-            return response.ToArray();
+            return response;
         }
 
         // отключение от блока сенсоров(?)

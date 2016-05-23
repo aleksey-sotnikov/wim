@@ -1,4 +1,14 @@
 /src/WIMDemon/WIMDemon/bin
-/src/WIMSensorsBlockEmulator/WIMSensorsBlockEmulator/bin
 /src/WIMDemon/WIMDemon/obj
+/src/TSWMDemon/TSWMDemon/bin
+/src/TSWMDemon/TSWMDemon/obj
+/src/TSWMDemon/TSWMDemon/bin/Debug
+/src/TSWMDemon/TSWMDemon/obj/Debug
+/src/TSWMDemon/TSWMRepository/bin
+/src/TSWMDemon/TSWMRepository/obj
+/src/TSWMDemon/TSWMRepository/bin/Debug
+/src/TSWMDemon/TSWMRepository/obj/Debug
+/src/WIMSensorsBlockEmulator/WIMSensorsBlockEmulator/bin
 /src/WIMSensorsBlockEmulator/WIMSensorsBlockEmulator/obj
+
+

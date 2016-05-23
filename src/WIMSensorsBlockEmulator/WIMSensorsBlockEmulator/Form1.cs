@@ -23,7 +23,8 @@ namespace WIMSensorsBlockEmulator
     public partial class Form1 : Form
     {
         //public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix";
-        public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_3_378.wix";
+        //public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_3_378.wix";
+        public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Loop_2_315.wix";
 
         // Создаем сокет Tcp/Ip
         private Socket sListener;
@@ -172,7 +173,11 @@ namespace WIMSensorsBlockEmulator
         private byte[] getPreparedData()
         {
             byte[] fileBytes = File.ReadAllBytes(FILE_NAME);
-            
+            int c = 0;
+            foreach (string s in File.ReadAllLines(FILE_NAME))
+            {
+                Console.WriteLine("{0}: {1}",c++,s.Length);
+            }
             return fileBytes;
         }
 

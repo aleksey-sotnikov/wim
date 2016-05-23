@@ -84,7 +84,7 @@ namespace TSWMDemon
 
                     //Задержка потока. TODO: Переделать на таймер. Либо асинхронный вызов.
                     Thread.Sleep(INTERVAL);
-                    Console.WriteLine("thread weakup ok\n================================");
+                    //Console.WriteLine("thread weakup ok\n================================");
                 }
                 catch (SocketException r)
                 {

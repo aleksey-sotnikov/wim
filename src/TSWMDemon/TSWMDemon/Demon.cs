@@ -101,7 +101,16 @@ namespace TSWMDemon
             IRepository rep = Repository.Instance;
 
             BSData bsData = rep.parseSBData(rawData);
-
+            if (bsData.IsValidData())
+            {
+                Console.WriteLine("Recived data is valid");
+                Logger.Info("Recived data is valid", MODULE);
+            }
+            else
+            {
+                Console.WriteLine("Data validation error");
+                Logger.Warning("Data validation error", MODULE);
+            }
         }
 
         // соединение с блоком сенсоров

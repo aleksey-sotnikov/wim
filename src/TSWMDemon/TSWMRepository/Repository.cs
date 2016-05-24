@@ -47,49 +47,20 @@ namespace TSWMRepository
 
     static class BSDataParser
     {
-        static readonly string SENSOR_KISLER = "0E";
-        static readonly string SENSOR_LOOP = "2E";
+
 
         static readonly int BYTE_LENGTH_4 = 4, BYTE_LENGTH_3 = 3, BYTE_LENGTH_1 = 1;
 
         public static BSData parseSBData(byte[] rawData)
         {
-            BSData bsData = new BSData();
+            BSData bsData;
             byte[] threeByteArr = new byte[3], fourByteArr = new byte[4];
             string sensorType;
-
-            /*** Parse examples
-
-            byte[] bytes = { 130, 200, 234, 23 }; // A byte array contains non-ASCII (or non-readable) characters
-
-            string s1 = Encoding.UTF8.GetString(bytes); // ���
-            byte[] decBytes1 = Encoding.UTF8.GetBytes(s1);  // decBytes1.Length == 10 !!
-            // decBytes1 not same as bytes
-            // Using UTF-8 or other Encoding object will get similar results
-
-            string s2 = BitConverter.ToString(bytes);   // 82-C8-EA-17
-            String[] tempAry = s2.Split('-');
-            byte[] decBytes2 = new byte[tempAry.Length];
-            for (int i = 0; i < tempAry.Length; i++)
-                decBytes2[i] = Convert.ToByte(tempAry[i], 16);
-            // decBytes2 same as bytes
-
-            string s3 = Convert.ToBase64String(bytes);  // gsjqFw==
-            byte[] decByte3 = Convert.FromBase64String(s3);
-            // decByte3 same as bytes
-
-            string s4 = HttpServerUtility.UrlTokenEncode(bytes);    // gsjqFw2
-            byte[] decBytes4 = HttpServerUtility.UrlTokenDecode(s4);
-            // decBytes4 same as bytes
-
-            ***/
-
-            // var startCode = Convert.ToInt64(rawData[0]);
-            // var startCode2 = Convert.ToInt64(rawData[1]);
-            // string hexOutput = String.Format("{0:X}", startCode) + String.Format("{0:X}", startCode2) ;
-            // string strHex = Convert.ToInt32(strBinary, 2).ToString("X");
-
             int sourceIndex = 0;
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////                        PACKAGE HEADER                             ///////////////////
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
             /// parse start code 4B ///                                                            - 1) start code
             Array.Copy(rawData, sourceIndex, fourByteArr, 0, BYTE_LENGTH_4);
@@ -101,7 +72,7 @@ namespace TSWMRepository
 
             /// parse package number 3B ///                                                        - 2) package number
             Array.Copy(rawData, sourceIndex, threeByteArr, 0, BYTE_LENGTH_3);
-           
+            
             int packageNum = ByteArrayToInt24(threeByteArr);
             sourceIndex += BYTE_LENGTH_3;
             /// END OF parse package number ///
@@ -141,6 +112,15 @@ namespace TSWMRepository
             sourceIndex += BYTE_LENGTH_3;
             /// END OF parse event time ///
 
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////                    END OF PACKAGE HEADER                          ///////////////////
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////                         PACKAGE BODY                              ///////////////////
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
             sourceIndex += Environment.NewLine.Length; //FIXME: remove car return shift
 
             /// parse flags 1B ///                                                                 - 6) flag
@@ -169,7 +149,22 @@ namespace TSWMRepository
             sourceIndex += BYTE_LENGTH_3;
             /// END OF parse sensor max value ///
 
-            sourceIndex += Environment.NewLine.Length; //FIXME: remove car return shift
+
+            // IF SENSOR IS KISLER                                                                 -- IF KISLER
+            int axesValue = 0;
+            if (BSData.SENSOR_KISLER.Equals(sensorType))
+            {
+                sourceIndex += Environment.NewLine.Length; //FIXME: remove car return shift
+
+                /// parse axes value 3B ///                                                        - 8b) axes value
+                Array.Copy(rawData, sourceIndex, threeByteArr, 0, BYTE_LENGTH_3);
+
+                axesValue = ByteArrayToInt24(threeByteArr);
+                sourceIndex += BYTE_LENGTH_3;
+                /// END OF parse axes value ///
+            }
+
+            sourceIndex += Environment.NewLine.Length; //FIXME: remove car return shift   
 
             /// parse sensor noise level 3B ///                                                    - 9) sensor noise level
             Array.Copy(rawData, sourceIndex, threeByteArr, 0, BYTE_LENGTH_3);
@@ -180,7 +175,7 @@ namespace TSWMRepository
 
             sourceIndex += Environment.NewLine.Length; //FIXME: remove car return shift
             
-            /// parse discrete frequency 1B ///                                                    - 10 discrete frequency
+            /// parse discrete frequency 1B ///                                                    - 10 discrete frequency  
             int freqDiscrete = rawData[sourceIndex];
             Console.WriteLine("discr freq bits=" + Pad(rawData[sourceIndex]));
             sourceIndex += BYTE_LENGTH_1;
@@ -199,7 +194,10 @@ namespace TSWMRepository
 
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             //FIXME
-            dataBlockCount = 31;
+            if (BSData.SENSOR_KISLER.Equals(sensorType))
+                dataBlockCount = 32;
+            else
+                dataBlockCount = 31;
             //FIXME
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             
@@ -218,7 +216,7 @@ namespace TSWMRepository
 
 
             // IF SENSOR IS KISLER                                                                  -- KISLER BRANCH
-            if (SENSOR_KISLER.Equals(sensorType))
+            if (BSData.SENSOR_KISLER.Equals(sensorType))
             {
                 //FFFFCC skip                                                                       - 29) free
                 sourceIndex += 6;
@@ -287,19 +285,41 @@ namespace TSWMRepository
                 sourceIndex += BYTE_LENGTH_4;
                 /// END OF parse end code ///
 
+                BSKislerData bsKislerData = new BSKislerData();
 
+                bsKislerData.PackageNumber = packageNum;
+                bsKislerData.TimeStampFrom = packageTransferTimeSpan;
+                bsKislerData.TimeFromStart = eventTime;
+                bsKislerData.DeviceMAC = deviceMAC;
+                bsKislerData.Flag = flags;
+                bsKislerData.SensorSleepValue = sensorSleep;
+                bsKislerData.SensorMaxValue = sensorMaxValue;
+                bsKislerData.SensorAxesValue = axesValue;           //??
+                bsKislerData.NoiseLevel = noiseLevel;
+                bsKislerData.Decimation = freqDiscrete;
+                bsKislerData.DataBlockCount = dataBlockCount;
+                bsKislerData.DataBlocks = dataBlocks;
+                bsKislerData.ImpulseAmplitude = amplImp;
+                bsKislerData.ImpulseWidth = widthImp;
+                bsKislerData.ImpulseSquare = squareImp;
+                bsKislerData.RoadTemperature = roadTempr;
+                bsKislerData.Vibration = vibration;
+                bsKislerData.Checksum = checksum;
 
+                bsData = bsKislerData;
+
+                
                 Console.WriteLine("PARSED DATA: Sensor type KISLER; start code={0}; packageNum={1}; packageTransferTime={2}, MAC={3},\n" +
-                                "eventTime={4}, falgs={5}, sensorSleep={6}, sensorMaxValue={7},\n" +
+                                "eventTime={4}, falgs={5}, sensorSleep={6}, sensorMaxValue={7},axesValue={19}\n" +
                                 "noiseLevel={8}, freqDiscrete={9}, dataBlockCount={10},\ndataBlocks[{10}]=[{11}]\n" +
                                 "amplImp={12}, widthImp={13}, squareImp={14}, roadTempr={15}, vibration={16},\nchecksum={17},endCode={18}",
                                 startCode, packageNum, packageTransferTimeSpan, deviceMAC, eventTime, flags, sensorSleep,
                                 sensorMaxValue, noiseLevel, freqDiscrete, dataBlockCount, string.Join(", ", dataBlocks),
-                                amplImp, widthImp, squareImp, roadTempr,vibration,checksum,endCode);
+                                amplImp, widthImp, squareImp, roadTempr,vibration,checksum,endCode,axesValue);
             }
 
             // IF SENSOR IS LOOP                                                                    -- LOOP BRANCH
-            else if (SENSOR_LOOP.Equals(sensorType))
+            else if (BSData.SENSOR_LOOP.Equals(sensorType))
             {
                 /// parse sensor NumberOfLocalMax 3B ///                                            - 29) Number Of Local Max
                 Array.Copy(rawData, sourceIndex, threeByteArr, 0, BYTE_LENGTH_3);
@@ -379,7 +399,31 @@ namespace TSWMRepository
                 sourceIndex += BYTE_LENGTH_4;
                 /// END OF parse end code ///
 
+                BSLoopData bsLoopData = new BSLoopData();
 
+                bsLoopData.PackageNumber = packageNum;
+                bsLoopData.TimeStampFrom = packageTransferTimeSpan;
+                bsLoopData.TimeFromStart = eventTime;
+                bsLoopData.DeviceMAC = deviceMAC;
+                bsLoopData.Flag = flags;
+                bsLoopData.SensorSleepValue = sensorSleep;
+                bsLoopData.SensorMaxValue = sensorMaxValue;
+                bsLoopData.NoiseLevel = noiseLevel;
+                bsLoopData.DescreteFrequency = freqDiscrete;
+                bsLoopData.DataBlockCount = dataBlockCount;
+                bsLoopData.DataBlocks = dataBlocks;
+                bsLoopData.LocalMaxCount = numberOfLocalMax;
+                bsLoopData.LocalMax1Time = timeLocalMax1;
+                bsLoopData.LocalMax1Amplitude = amplLocalMax1;
+                bsLoopData.LocalMax2Time = timeLocalMax2;
+                bsLoopData.LocalMax2Amplitude = amplLocalMax2;
+                bsLoopData.LocalMax3Time = timeLocalMax3;
+                bsLoopData.LocalMax3Amplitude = amplLocalMax3;
+                bsLoopData.Checksum = checksum;
+
+                bsData = bsLoopData;
+                
+                
                 Console.WriteLine("PARSED DATA: Sensor type LOOP;  startCode={0}; packageNum={1}; packageTransferTime={2}, MAC={3},\n" +
                                 "eventTime={4},falgs={5},sensorSleep={6}, sensorMaxValue={7},\n" +
                                 "noiseLevel={8},freqDiscrete={9},dataBlockCount={10},\ndataBlocks[{10}]=[{11}]\n" +
@@ -389,13 +433,47 @@ namespace TSWMRepository
                                 sensorMaxValue, noiseLevel, freqDiscrete, dataBlockCount, string.Join(", ", dataBlocks), numberOfLocalMax,
                                 timeLocalMax1, amplLocalMax1, timeLocalMax2, amplLocalMax2, timeLocalMax3, amplLocalMax3, checksum,endCode);
             }
+            else
+            {
+                throw new NotSupportedException("Sensor not supported: " + deviceMAC);
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+            /////////////////                     END OF PACKAGE BODY                           ///////////////////
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
 
 
-            
+            /*** Parse examples
+
+                byte[] bytes = { 130, 200, 234, 23 }; // A byte array contains non-ASCII (or non-readable) characters
+
+                string s1 = Encoding.UTF8.GetString(bytes); // ���
+                byte[] decBytes1 = Encoding.UTF8.GetBytes(s1);  // decBytes1.Length == 10 !!
+                // decBytes1 not same as bytes
+                // Using UTF-8 or other Encoding object will get similar results
+
+                string s2 = BitConverter.ToString(bytes);   // 82-C8-EA-17
+                String[] tempAry = s2.Split('-');
+                byte[] decBytes2 = new byte[tempAry.Length];
+                for (int i = 0; i < tempAry.Length; i++)
+                    decBytes2[i] = Convert.ToByte(tempAry[i], 16);
+                // decBytes2 same as bytes
+
+                string s3 = Convert.ToBase64String(bytes);  // gsjqFw==
+                byte[] decByte3 = Convert.FromBase64String(s3);
+                // decByte3 same as bytes
+
+                ***/
+
+            // var startCode = Convert.ToInt64(rawData[0]);
+            // var startCode2 = Convert.ToInt64(rawData[1]);
+            // string hexOutput = String.Format("{0:X}", startCode) + String.Format("{0:X}", startCode2) ;
+            // string strHex = Convert.ToInt32(strBinary, 2).ToString("X");
+
 
             return bsData;
         }

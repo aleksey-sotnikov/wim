@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BSDataHelper.cs" />
     <Compile Include="Demon.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MainForm.cs">

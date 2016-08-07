@@ -9,3 +9,14 @@ D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.pdb
 D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.MainForm.resources
 D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMRepository.dll
 D:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMRepository.pdb
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMDemon.exe.config
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.exe
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.pdb
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMDemon.exe
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMDemon.pdb
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMRepository.dll
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\bin\Debug\TSWMRepository.pdb
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.csprojResolveAssemblyReference.cache
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.MainForm.resources
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.Properties.Resources.resources
+D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMDemon\obj\Debug\TSWMDemon.csproj.GenerateResource.Cache

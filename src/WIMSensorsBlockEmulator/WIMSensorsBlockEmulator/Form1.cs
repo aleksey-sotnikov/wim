@@ -24,7 +24,8 @@ namespace WIMSensorsBlockEmulator
     {
         //public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix";
         //public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_3_378.wix";
-        public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Loop_2_315.wix";
+        //public static readonly string FILE_NAME = "d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Loop_2_315.wix";
+        public static readonly string FILE_NAME = "d:\\!FL\\WIM\\AUTO\\DATA\\Loop_2_315.wix";
 
         // Создаем сокет Tcp/Ip
         private Socket sListener;

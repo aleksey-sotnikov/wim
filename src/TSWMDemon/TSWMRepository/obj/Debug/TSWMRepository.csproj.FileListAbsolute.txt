@@ -8,3 +8,5 @@ D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMRepository\bin\Debug\TSWMRepository.pdb
 D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMRepository\obj\Debug\TSWMRepository.csprojResolveAssemblyReference.cache
 D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMRepository\obj\Debug\TSWMRepository.dll
 D:\!FL\WIM\github\wim\src\TSWMDemon\TSWMRepository\obj\Debug\TSWMRepository.pdb
+d:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\bin\Debug\TSWMRepository.dll.CodeAnalysisLog.xml
+d:\!PROJECTS\WIM\!github\wim\src\TSWMDemon\TSWMRepository\bin\Debug\TSWMRepository.dll.lastcodeanalysissucceeded

@@ -1,68 +1,203 @@
 ﻿using System;
-
 using System.Text;
 using TSWMRepository.domain;
 
 namespace TSWMRepository
 {
+    /// <summary>
+    /// Список команд запроса
+    /// </summary>
     enum BSCommand
     {
-        CMD_DEV_INFO	= 0x80, //	Запрос дескриптора
-        CMD_PING        = 0x81, //	Ping
-        CMD_HW_RESET    = 0x82, //	Аппаратный сброс
-        CMD_SW_RESET    = 0x83, //	Программный сброс
-        CMD_GET_ERROR	= 0x84, //	Запрос ошибок
-        CMD_ZERO_ERROR	= 0x85, //	Обнуления ошибок
-        CMD_SET_PARAM	= 0x86, //	Установка параметров
-        CMD_GET_PARAM	= 0x87  //	Считывание данных
+        /// <summary>
+        /// Запрос дескриптора
+        /// </summary>
+        CMD_DEV_INFO = 0x80,
+        /// <summary>
+        /// Ping
+        /// </summary>
+        CMD_PING = 0x81,
+        /// <summary>
+        /// Аппаратный сброс
+        /// </summary>
+        CMD_HW_RESET = 0x82,
+        /// <summary>
+        /// Программный сброс
+        /// </summary>
+        CMD_SW_RESET = 0x83,
+        /// <summary>
+        /// Запрос ошибок
+        /// </summary>
+        CMD_GET_ERROR = 0x84,
+        /// <summary>
+        /// Обнуление ошибок
+        /// </summary>
+        CMD_ZERO_ERROR = 0x85,
+        /// <summary>
+        /// Установка параметров
+        /// </summary>
+        CMD_SET_PARAM = 0x86,
+        /// <summary>
+        /// Считывание данных
+        /// </summary>
+        CMD_GET_PARAM = 0x87
     }
     
-
+    /// <summary>
+    /// Подготовка запросов и парсинг ответов от БОД
+    /// </summary>
     class BSDataHelper
     {
+
+        // Стартовый байт
         public const byte START_BYTE = 0x55;
 
-        public byte[] dataRequest(byte sensorType)
-        {
-            byte[] request = new byte[8]; 
-            byte[] header = prepareHeader(BSCommand.CMD_GET_PARAM);
+        // Адрес устройства TODO: set real address
+        public const byte DEVICE_ADDRESS = 0x10;
 
+        //Рассположение данных в массиве запроса
+        /// <summary>
+        /// Стартовый байт
+        /// </summary>
+        public const int REQ_POS_START_BYTE = 0;
+        /// <summary>
+        /// Адрес устройства 
+        /// </summary>
+        public const int REQ_POS_DEV_ADDR = 1;
+        /// <summary>
+        /// Номер пакета
+        /// </summary>
+        public const int REQ_POS_PACKAGE_NUM = 2;
+        /// <summary>
+        /// Команда запроса
+        /// </summary>
+        public const int REQ_POS_CMD = 3;
+        /// <summary>
+        /// Кол-во данных в теле запроса (1 of 2 bytes) 
+        /// </summary>
+        public const int REQ_POS_DATA_COUNT_1 = 4;
+        /// <summary>
+        /// Кол-во данных в теле запроса (2 of 2 bytes) 
+        /// </summary>
+        public const int REQ_POS_DATA_COUNT_2 = 5;
+        /// <summary>
+        /// Контрольная сумма данных заголовка запроса
+        /// </summary>
+        public const int REQ_POS_HEADER_CRC = 6;
+        /// <summary>
+        /// Поле тела OP1
+        /// </summary>
+        public const int REQ_POS_OP1 = 7;
+        /// <summary>
+        /// Поле тела OP2
+        /// </summary>
+        public const int REQ_POS_OP2 = 8;
+        /// <summary>
+        /// Поле тела OP3
+        /// </summary>
+        public const int REQ_POS_OP3 = 9;
+        /// <summary>
+        /// Поле тела OP4
+        /// </summary>
+        public const int REQ_POS_OP4 = 10;
+
+
+        /// <summary>
+        /// Создание запроса данных на основе типа сенсора
+        /// </summary>
+        /// <param name="sensorType">Тип сенсора: 1-2 Петли, 5-12 Кислер</param>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] DataRequest(byte sensorType)
+        {
+            byte[] header = prepareHeader(BSCommand.CMD_GET_PARAM);
+            int requestSize = header.Length + header[REQ_POS_DATA_COUNT_2];
+            byte[] request = new byte[requestSize];
             header.CopyTo(request, 0);
-            request[7] = sensorType;
+            request[REQ_POS_OP1] = sensorType;
+            request[requestSize - 1] = Crc8.ComputeChecksum(new byte[] { request[REQ_POS_OP1] }); //CRC8 Body hash 
+
             return request;
         }
 
-        public byte[] pingRequest(){
+        /// <summary>
+        /// Создание запроса установки параметров БОД
+        /// </summary>
+        /// <param name="sensorType">Тип сенсора: 1-2 Петли, 5-12 Кислер ???</param>
+        /// <param name="freq">Частота в петле /или/ Множ.прореж.данных 5-8</param>
+        /// <param name="coeff">Напряжение возбужд(1-4) /или/ Коэффиц.деления</param>
+        /// <param name="threshold">Порог регистрации</param>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] SetParams(byte sensorType, byte freq, byte coeff, byte threshold)
+        {
+            byte[] header = prepareHeader(BSCommand.CMD_GET_PARAM);
+
+            int requestSize = header.Length + header[REQ_POS_DATA_COUNT_2];
+            byte[] request = new byte[requestSize];
+            header.CopyTo(request, 0);
+            request[REQ_POS_OP1] = sensorType;
+            request[REQ_POS_OP2] = freq;
+            request[REQ_POS_OP3] = coeff;
+            request[REQ_POS_OP4] = threshold;
+            request[requestSize - 1] = Crc8.ComputeChecksum(new byte[] { request[REQ_POS_OP1], request[REQ_POS_OP2], request[REQ_POS_OP3], request[REQ_POS_OP4] }); //CRC8 Body hash 
+
+            return request;
+        }
+
+        /// <summary>
+        /// Создание запроса Ping
+        /// </summary>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] PingRequest(){
             return prepareHeader(BSCommand.CMD_PING);
         }
 
-        public byte[] lastError()
+        /// <summary>
+        /// Создание запроса Ping
+        /// </summary>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] LastError()
         {
             return prepareHeader(BSCommand.CMD_GET_ERROR);
         }
 
-        public byte[] errorsReset()
+        /// <summary>
+        /// Создание запроса на сброс ошибок 
+        /// </summary>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] ErrorsReset()
         {
             return prepareHeader(BSCommand.CMD_ZERO_ERROR);
         }
 
-        public byte[] hwReset()
+        /// <summary>
+        /// Создание запроса на аппаратный сброс 
+        /// </summary>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] HwReset()
         {
             return prepareHeader(BSCommand.CMD_HW_RESET);
         }
 
-        public byte[] swReset()
+        /// <summary>
+        /// Создание запроса на программный сброс
+        /// </summary>
+        /// <returns>Подготовленный массив запроса</returns>
+        public byte[] SwReset()
         {
             return prepareHeader(BSCommand.CMD_SW_RESET);
         }
 
+        /// <summary>
+        /// Подгатовка массива запроса в соответствии с командой
+        /// </summary>
+        /// <param name="cmd"></param>
+        /// <returns></returns>
         private byte[] prepareHeader(BSCommand cmd)
         {
-            byte[] header = new byte[7];
-            header[0] = START_BYTE;
-            header[1] = 0x01; //ADR TODO: set real address
-            header[2] = 0x00; //PACKET_ID TODO: set real packet id
-            header[3] = (byte)cmd; //Command
+            //Определение кол-ва доп. данных в зависимости от типа запроса
+            //Установка параметров БОД (CMD_SET_PARAM) - 4
+            //Синхронизация времени (???)              - 4 
+            //Запрос данных (CMD_GET_PARAM)            - 1
             byte dataCount = 0x00;
             switch (cmd)
             {
@@ -73,9 +208,15 @@ namespace TSWMRepository
                     dataCount = 0x01;
                     break;
             }
-            header[4] = dataCount; //DATA_COUNT 2B
-            header[5] = 0x00; //DATA_COUNT 2B
-            header[6] = Crc8.ComputeChecksum(new byte[]{ header[1], header[2],header[3],header[4],header[5] }); //CRC8
+
+            byte[] header = new byte[7];
+            header[REQ_POS_START_BYTE] = START_BYTE;
+            header[REQ_POS_DEV_ADDR] = DEVICE_ADDRESS; 
+            header[REQ_POS_PACKAGE_NUM] = 0x00; //PACKET_ID TODO: set real packet id
+            header[REQ_POS_CMD] = (byte) cmd; //Command
+            header[REQ_POS_DATA_COUNT_1] = 0x00; //DATA_COUNT (2 Byte)
+            header[REQ_POS_DATA_COUNT_2] = dataCount; //DATA_COUNT (2 Byte)
+            header[REQ_POS_HEADER_CRC] = Crc8.ComputeChecksum(new byte[]{ header[REQ_POS_DEV_ADDR], header[REQ_POS_PACKAGE_NUM],header[REQ_POS_CMD],header[REQ_POS_DATA_COUNT_1],header[REQ_POS_DATA_COUNT_2] }); //CRC8 header hash
 
             return header;
         }
@@ -560,6 +701,9 @@ namespace TSWMRepository
         }
     }
 
+    /// <summary>
+    /// Вычисление контрольной суммы CRC-8 байтового массива
+    /// </summary>
     public static class Crc8
     {
         static byte[] table = new byte[256];

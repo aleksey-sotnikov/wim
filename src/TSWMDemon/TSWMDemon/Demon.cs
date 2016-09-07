@@ -23,10 +23,13 @@ namespace TSWMDemon
     /// <summary>
     /// Основной поток, который получает данные от блока датчиков.
     /// </summary>
-    class Demon
+    public class Demon
     {
         //статус подключения к блоку сенсоров(?)
-        private bool enabled = false;
+        public bool Enabled { get; set; } = false;
+
+        //BOD endpoint
+        public EndPoint BSEndPoint { get; set; }
 
         //константа названия модуля для логгера
         private static readonly string MODULE = "Demon";
@@ -40,7 +43,14 @@ namespace TSWMDemon
         private int INTERVAL = Convert.ToInt32(ConfigurationManager.AppSettings[KEY_INTERVAL]);
 
         //private System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
-        
+
+        public Demon()
+        {
+            //Получение конечнной точки блока сенсоров
+            BSEndPoint = prepareBSEndPoint();
+        }
+
+
         // запуск демона
         public void start()
         {
@@ -49,51 +59,84 @@ namespace TSWMDemon
             // создаение соеднинения с репозиторем хранения данных(?)
             IRepository rep = Repository.Instance;
 
-            //Получение конечнной точки блока сенсоров
-            EndPoint bsEndPoint = prepareBSEndPoint();
+            BSDataHelper dataHelper = rep.getBSDataHelper();
 
-            enabled = true;
+            Enabled = true;
 
             // цикл получения данных от блока сенсоров (?)
-            while (enabled)
+            while (Enabled)
             {
-                // соединение с блоком сенсоров
-                Socket socket = startClient(bsEndPoint);
-                if(socket == null)
+                byte[] rawResponse = doRequest(dataHelper.DataRequest(0x01));
+                if (rawResponse == null)
                 {
-                    Logger.Error("Socket not created!", MODULE);
+                    Logger.Error("No socket response!", MODULE);
                     continue;
                 }
-                Console.WriteLine("new socked started");
-                try
-                {
-                    // получение данных от блока сенсоров
-                    byte[] rawResponse = fetchSBData(socket);
 
-                    // TEST
-                    // Console.WriteLine("\nОтвет от сервера размером: {0}\n\n", rawResponse.Length);
-                    //File.WriteAllBytes("d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix_1", rawResponse);
+                parseSBData(rawResponse);
 
-                    parseSBData(rawResponse);
+                //Задержка потока. TODO: Переделать на таймер. Либо асинхронный вызов.
+                Thread.Sleep(INTERVAL);
+                //Console.WriteLine("thread weakup ok\n================================");
 
-
-                    // освобождение сокета
-                    socket.Shutdown(SocketShutdown.Both);
-                    socket.Close();
-                    Console.WriteLine("socket closed");
-
-                    //Задержка потока. TODO: Переделать на таймер. Либо асинхронный вызов.
-                    Thread.Sleep(INTERVAL);
-                    //Console.WriteLine("thread weakup ok\n================================");
-                }
-                catch (SocketException r)
-                {
-                    Logger.Error("Socket Error: " + r.Message, MODULE);
-                    Console.WriteLine(r.ToString());
-                }
-                
             }
             stop();
+        }
+
+        public byte[] Ping()
+        {
+            IRepository rep = Repository.Instance;
+
+            BSDataHelper dataHelper = rep.getBSDataHelper();
+
+            return doRequest(dataHelper.PingRequest());
+
+        }
+
+        public byte[] SetParams(byte sensorType, byte freq, byte coeff, byte threshold)
+        {
+            IRepository rep = Repository.Instance;
+
+            BSDataHelper dataHelper = rep.getBSDataHelper();
+
+            return doRequest(dataHelper.SetParams(sensorType,freq,coeff,threshold));
+        }
+
+        private byte[] doRequest(byte[] requestData)
+        {
+            // соединение с блоком сенсоров
+            Socket socket = startClient(BSEndPoint);
+            if (socket == null)
+            {
+                Logger.Error("Socket not created!", MODULE);
+                return null;
+            }
+
+            Console.WriteLine("new socked started");
+
+            byte[] rawResponse = null;
+            try
+            {
+                // получение данных от блока сенсоров
+                rawResponse = fetchSBData(socket, requestData);
+
+                // TEST
+                // Console.WriteLine("\nОтвет от сервера размером: {0}\n\n", rawResponse.Length);
+                //File.WriteAllBytes("d:\\!PROJECTS\\WIM\\AUTO\\DATA\\Kisler_1_198.wix_1", rawResponse);
+                
+                // освобождение сокета
+                socket.Shutdown(SocketShutdown.Both);
+                socket.Close();
+                Console.WriteLine("socket closed");
+                
+            }
+            catch (SocketException r)
+            {
+                Logger.Error("Socket Error: " + r.Message, MODULE);
+                Console.WriteLine(r.ToString());
+            }
+
+            return rawResponse;
         }
 
         private void parseSBData(byte[] rawData)
@@ -131,6 +174,7 @@ namespace TSWMDemon
                 if (Int32.TryParse(portText, out portValue))
                 {
                     EndPoint ep = new System.Net.IPEndPoint(hostValue, portValue);
+                    System.Console.WriteLine("ip inited ");
                     return ep;
                 }
                 else
@@ -173,7 +217,7 @@ namespace TSWMDemon
             return clientSocket;
         }
 
-        private byte[] fetchSBData(Socket socket)
+        private byte[] fetchSBData(Socket socket, byte[] request)
         {
             // TODO: do fetch data 
             // Буфер для входящих данных
@@ -183,7 +227,8 @@ namespace TSWMDemon
 
             // создание запроса готовых данных
             // byte[] request = Encoding.UTF8.GetBytes(message);
-            byte[] request = { (byte)BSFlag.GET_DATA };
+            //byte[] request = { (byte)BSFlag.GET_DATA };
+
             // Отправляем данные через сокет
             int bytesSent = socket.Send(request);
             System.Console.WriteLine("sent {0} bytes ", bytesSent);
@@ -230,13 +275,13 @@ namespace TSWMDemon
         {
             Logger.Info("Stop Demon...", MODULE);
             //TODO: disconnect impl here
-            return enabled = false;
+            return Enabled = false;
         }
 
         // текущий статус соединения с блоком сенсоров
         public bool getServerStatus()
         {
-            return enabled;
+            return Enabled;
         }
 
     }

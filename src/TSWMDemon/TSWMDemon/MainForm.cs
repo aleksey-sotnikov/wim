@@ -6,24 +6,75 @@ namespace TSWMDemon
 {
     public partial class MainForm : Form
     {
-        private Thread demon;
+        private Thread demonThread;
+        private Demon demon;
 
-        public MainForm(Thread demon)
+        public MainForm(Thread demonThread, Demon demon)
         {
             InitializeComponent();
+            this.demonThread = demonThread;
             this.demon = demon;
-            System.Console.WriteLine("MainForm constructor " + demon.ManagedThreadId);
-        }
 
-        private void Form1_FormClosing(object sender, EventArgs e)
-        {
-            demon.Join();
+            
+            
+            System.Console.WriteLine("MainForm constructor " + demonThread.ManagedThreadId);
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            this.demon.Start();
-            System.Console.WriteLine("MainForm_Load");
+            /*
+            this.demonThread.Start();
+            while (!this.demon.Enabled) { System.Console.Write("."); Thread.Sleep(100); }
+            System.Console.Write("\n Demon thread started");
+            this.label1.Text = "Endpoint: " + this.demon.BSEndPoint;
+            this.button1.Text = "started";
+            */
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            System.Console.WriteLine("MainForm_FormClosing. Abort demon bg thread...");
+            demonThread.Abort();
+            
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if(!this.demon.Enabled)
+            {
+                demonThread = new Thread(() => demon.start());
+                this.button1.Text = "started";
+            }
+            else
+            {
+                this.demon.stop();
+                 this.button1.Text = "stopped";
+            }
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            byte[] resp = demon.Ping();
+            string msg;
+            if(resp != null)
+            {
+                msg = "response size = " + resp.Length + ", data:";
+                for (int i = 0; i < resp.Length; i++)
+                    msg += resp[i];
+            }else
+            {
+                msg = "no response";
+            }
+            
+
+            this.label2.Text = msg;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            this.demon.SetParams(0x04, 0x01, 0x18, 0x00);
         }
     }
 }

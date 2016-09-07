@@ -43,6 +43,10 @@ namespace TSWMRepository
             return BSDataParser.parseSBData(rawData);
         }
 
+        public BSDataHelper getBSDataHelper()
+        {
+            return new BSDataHelper();
+        }
 
     }
 

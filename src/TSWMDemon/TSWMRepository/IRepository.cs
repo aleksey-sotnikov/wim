@@ -13,5 +13,7 @@ namespace TSWMRepository
         void WriteLine();
 
         BSData parseSBData(byte[] rawData);
+
+        BSDataHelper getBSDataHelper();
     }
 }

@@ -23,13 +23,13 @@ namespace TSWMDemon
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            /*
-            this.demonThread.Start();
-            while (!this.demon.Enabled) { System.Console.Write("."); Thread.Sleep(100); }
-            System.Console.Write("\n Demon thread started");
+           
+            //this.demonThread.Start();
+            //while (!this.demon.Enabled) { System.Console.Write("."); Thread.Sleep(100); }
+            //System.Console.Write("\n Demon thread started");
             this.label1.Text = "Endpoint: " + this.demon.BSEndPoint;
-            this.button1.Text = "started";
-            */
+            //this.button1.Text = "started";
+            
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -49,32 +49,45 @@ namespace TSWMDemon
             else
             {
                 this.demon.stop();
-                 this.button1.Text = "stopped";
+                this.button1.Text = "stopped";
             }
 
+        }
+
+        private String checkResp(byte[] resp)
+        {
+            string msg;
+            if (resp != null)
+            {
+                msg = "response size = " + resp.Length + ", data: " + BitConverter.ToString(resp);
+            }
+            else
+            {
+                msg = "no response";
+            }
+            return msg;
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
             byte[] resp = demon.Ping();
-            string msg;
-            if(resp != null)
-            {
-                msg = "response size = " + resp.Length + ", data:";
-                for (int i = 0; i < resp.Length; i++)
-                    msg += resp[i];
-            }else
-            {
-                msg = "no response";
-            }
-            
-
-            this.label2.Text = msg;
+            this.label2.Text = checkResp(resp);
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            this.demon.SetParams(0x04, 0x01, 0x18, 0x00);
+            byte[] resp = this.demon.SetParams(0x04, 0x01, 0x18, 0x00);
+            this.label3.Text = checkResp(resp);
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+            this.label2.Text = "...";
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+            this.label3.Text = "...";
         }
     }
 }

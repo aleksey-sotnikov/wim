@@ -12,13 +12,7 @@ using TSWMRepository.domain;
 
 namespace TSWMDemon
 {
-    enum BSFlag
-    {
-        // Флаг запроса готовых данных
-        GET_DATA = 0x01,
-        // Флаг запроса синхронизации времени блока сенсоров с сервером времени
-        SYNC_TIME = 0x02
-    }
+   
 
     /// <summary>
     /// Основной поток, который получает данные от блока датчиков.
@@ -39,10 +33,20 @@ namespace TSWMDemon
         private static readonly string KEY_SBPORT = "SBport";
         //название ключа интервала опроса блока сенсоров в файле настроек
         private static readonly string KEY_INTERVAL = "SBinterval";
+        //название ключа таймаута запроса сокета в файле настроек
+        private static readonly string KEY_SOCECT_SEND_TIMEOUT = "SocketSendTimeout";
+        //название ключа таймаута ответа сокета в файле настроек
+        private static readonly string KEY_SOCECT_RECIVE_TIMEOUT = "SocketReciveTimeout";
+        
         //интервал опроса блока сенсоров
         private int INTERVAL = Convert.ToInt32(ConfigurationManager.AppSettings[KEY_INTERVAL]);
+        //таймаут запроса сокета в файле настроек
+        private int SOCECT_SEND_TIMEOUT = Convert.ToInt32(ConfigurationManager.AppSettings[KEY_SOCECT_SEND_TIMEOUT]);
+        //таймаут ответа сокета в файле настроек
+        private int SOCECT_RECIVE_TIMEOUT = Convert.ToInt32(ConfigurationManager.AppSettings[KEY_SOCECT_RECIVE_TIMEOUT]);
 
         //private System.Net.Sockets.TcpClient clientSocket = new System.Net.Sockets.TcpClient();
+
 
         public Demon()
         {
@@ -99,7 +103,7 @@ namespace TSWMDemon
 
             BSDataHelper dataHelper = rep.getBSDataHelper();
 
-            return doRequest(dataHelper.SetParams(sensorType,freq,coeff,threshold));
+            return doRequest(dataHelper.SetParams(sensorType, freq, coeff, threshold));
         }
 
         private byte[] doRequest(byte[] requestData)
@@ -111,6 +115,10 @@ namespace TSWMDemon
                 Logger.Error("Socket not created!", MODULE);
                 return null;
             }
+
+            //Настройка сокета
+            socket.SendTimeout = SOCECT_SEND_TIMEOUT;
+            socket.ReceiveTimeout = SOCECT_RECIVE_TIMEOUT;
 
             Console.WriteLine("new socked started");
 
